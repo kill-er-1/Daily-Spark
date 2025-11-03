@@ -1,0 +1,13 @@
+FROM golang:1.23.1-alpine
+
+ARG GOPROXY=https://goproxy.cn,direct
+ENV GOPROXY=${GOPROXY}
+ENV GO111MODULE=on
+ENV GOTOOLCHAIN=auto
+WORKDIR /app/backend
+
+RUN apk add --no-cache git ca-certificates && \
+    go install github.com/air-verse/air@latest
+
+# 默认运行 Air，读取挂载目录中的 .air.toml
+CMD ["/go/bin/air", "-c", ".air.toml"]
