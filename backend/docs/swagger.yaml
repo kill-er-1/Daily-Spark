@@ -5,6 +5,27 @@ definitions:
       account:
         type: string
     type: object
+  handler.EventVO:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      event_date:
+        type: string
+      id:
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      is_public:
+        type: boolean
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
   handler.SignInRequest:
     properties:
       account:
@@ -47,6 +68,56 @@ info:
   title: Daily-Spark API
   version: "1.0"
 paths:
+  /events/create:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 为指定日期（默认当天）创建一条快乐事件；图片上传为 multipart/form-data（单文件）
+      parameters:
+      - description: 用户ID
+        in: formData
+        name: user_id
+        required: true
+        type: string
+      - description: 纯文本内容
+        in: formData
+        name: content
+        required: true
+        type: string
+      - description: 是否公开（true/false）
+        in: formData
+        name: is_public
+        type: boolean
+      - description: 事件日期(YYYY-MM-DD)
+        in: formData
+        name: event_date
+        type: string
+      - description: 事件图片（单文件）
+        in: formData
+        name: image
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.EventVO'
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "404":
+          description: user not found
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      summary: 创建快乐事件
+      tags:
+      - events
   /users/delete/{id}:
     post:
       consumes:
