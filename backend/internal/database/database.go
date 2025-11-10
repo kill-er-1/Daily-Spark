@@ -20,7 +20,7 @@ func InitDB() (*gorm.DB, error) {
 	}
 
   //数据库迁移
-  if err := DB.AutoMigrate(&model.User{}); err != nil {
+  if err := DB.AutoMigrate(&model.User{}, &model.Event{}); err != nil {
     return nil, err
   }
 
