@@ -1,0 +1,12 @@
+FROM golang:1.25-alpine
+
+WORKDIR /app/backend
+
+ENV GO111MODULE=on
+ENV GOPROXY=https://goproxy.cn,direct
+ENV GOTOOLCHAIN=auto
+
+RUN apk add --no-cache git ca-certificates && \
+    go install github.com/air-verse/air@latest
+
+CMD ["/go/bin/air", "-c", ".air.toml"]

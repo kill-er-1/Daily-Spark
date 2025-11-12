@@ -1,43 +1,42 @@
-# OS / Editor
+# OS
 .DS_Store
-Thumbs.db
-.idea/
+
+# Editors/IDE
 .vscode/
+.idea/
 
-# Logs & temp
-*.log
-*.tmp
-*.swp
-tmp/
-backend/tmp/
-
-# Go build outputs
+# Go
 bin/
-backend/bin/
-build/
-*.out
+tmp/
+*.exe
 *.test
+*.out
+coverage/
+profile.out
 
-# Go modules/workspace (keep vendor if you use vendoring)
-# vendor/
+# Air
+tmp/
 
-# Docker / env
-.env
-*.env.local
-docker-compose.override.yml
-
-# Frontend (Node)
+# Frontend / Node
 node_modules/
 dist/
 build/
+.cache/
 coverage/
-.next/
-.nuxt/
-frontend/node_modules/
-frontend/dist/
-frontend/build/
-frontend/coverage/
 
-# Misc
-coverage/
-*.coverage
+# Env files
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Docker overrides
+docker-compose.override.yml
+
+# Logs
+*.log
+logs/
+
+static/

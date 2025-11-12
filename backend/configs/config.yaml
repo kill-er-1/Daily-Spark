@@ -1,0 +1,16 @@
+# 应用基础配置示例
+app:
+  name: daily-spark
+  port: 8080
+
+postgres:
+  host: postgres
+  port: 5432
+  user: postgres
+  password: postgres
+  dbname: daily_spark
+  sslmode: disable
+
+redis:
+  addr: redis:6379
+  db: 0

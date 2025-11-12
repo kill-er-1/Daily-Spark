@@ -1,0 +1,67 @@
+services:
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    platform: linux/arm64
+    working_dir: /app/backend
+    volumes:
+      - ./backend:/app/backend
+      # Cache Go modules and build output across container restarts
+      - go_mod_cache:/go/pkg/mod
+      - go_build_cache:/root/.cache/go-build
+      - go_bin_cache:/go/bin
+    environment:
+      GO111MODULE: "on"
+      # Common envs for connecting to Postgres/Redis from the app
+      DATABASE_URL: "postgres://postgres:postgres@postgres:5432/daily_spark?sslmode=disable"
+      REDIS_ADDR: "redis:6379"
+    command: ["/go/bin/air", "-c", ".air.toml"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: daily_spark
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d daily_spark"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 2s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  go_mod_cache:
+  go_build_cache:
+  go_bin_cache:

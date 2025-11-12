@@ -1,0 +1,224 @@
+basePath: /api/v1
+definitions:
+  handler.DeleteUserRequest:
+    properties:
+      account:
+        type: string
+    type: object
+  handler.SignInRequest:
+    properties:
+      account:
+        type: string
+      password:
+        type: string
+    type: object
+  handler.SignUpRequest:
+    properties:
+      account:
+        type: string
+      password:
+        type: string
+    type: object
+  handler.UpdateUserRequest:
+    properties:
+      nickname:
+        type: string
+      password:
+        type: string
+    type: object
+  handler.UserVO:
+    properties:
+      account:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      is_admin:
+        type: boolean
+      nickname:
+        type: string
+      updated_at:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Daily-Spark 后端接口文档
+  title: Daily-Spark API
+  version: "1.0"
+paths:
+  /users/delete/{id}:
+    post:
+      consumes:
+      - application/json
+      description: 管理员通过 id 软删除用户
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 操作者账号
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.DeleteUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: user deleted
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "403":
+          description: permission denied
+          schema:
+            type: string
+        "404":
+          description: user not found
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      summary: 删除用户（管理员）
+      tags:
+      - users
+  /users/query:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handler.UserVO'
+            type: array
+        "500":
+          description: internal error
+          schema:
+            type: string
+      summary: 查询所有用户
+      tags:
+      - users
+  /users/signin:
+    post:
+      consumes:
+      - application/json
+      description: 使用账号密码登录（返回用户信息）
+      parameters:
+      - description: 登录参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.SignInRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.UserVO'
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "401":
+          description: password not match
+          schema:
+            type: string
+        "404":
+          description: account not exists
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      summary: 用户登录
+      tags:
+      - users
+  /users/signup:
+    post:
+      consumes:
+      - application/json
+      description: 使用账号密码创建用户（返回创建的用户）
+      parameters:
+      - description: 注册参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.SignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.UserVO'
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "409":
+          description: account exists
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      summary: 用户注册
+      tags:
+      - users
+  /users/update/{id}:
+    post:
+      consumes:
+      - application/json
+      description: 根据 id 更新昵称或密码
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新参数
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.UserVO'
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "404":
+          description: user not found
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      summary: 更新用户
+      tags:
+      - users
+schemes:
+- http
+swagger: "2.0"
