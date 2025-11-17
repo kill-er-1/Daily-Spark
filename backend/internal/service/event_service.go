@@ -8,6 +8,7 @@ import (
 
     "github.com/cin/daily-spark/internal/model"
     "github.com/cin/daily-spark/internal/repository"
+    "gorm.io/gorm"
 )
 
 type EventService struct {
@@ -112,4 +113,66 @@ func (s *EventService) DeleteEvent(ctx context.Context, id string) error {
         return errors.New("id empty")
     }
     return s.eventRepo.DeleteEventSoft(ctx, id)
+}
+
+var (
+    ErrEventNotFound = errors.New("event not found")
+)
+
+func (s *EventService) AddEventTags(ctx context.Context, eventID string, names []string) (*model.Event, error) {
+    eventID = strings.TrimSpace(eventID)
+    if eventID == "" {
+        return nil, errors.New("event_id empty")
+    }
+    if _, err := s.eventRepo.QueryEventByID(ctx, eventID); err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            return nil, ErrEventNotFound
+        }
+        return nil, err
+    }
+    tags, err := s.eventRepo.EnsureTagsByNames(ctx, names)
+    if err != nil {
+        return nil, err
+    }
+    if err := s.eventRepo.AddTagsToEvent(ctx, eventID, tags); err != nil {
+        return nil, err
+    }
+    e, err := s.eventRepo.QueryEventByID(ctx, eventID)
+    if err != nil {
+        return nil, err
+    }
+    return e, nil
+}
+
+func (s *EventService) RemoveEventTags(ctx context.Context, eventID string, names []string) (*model.Event, error) {
+    eventID = strings.TrimSpace(eventID)
+    if eventID == "" {
+        return nil, errors.New("event_id empty")
+    }
+    if _, err := s.eventRepo.QueryEventByID(ctx, eventID); err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            return nil, ErrEventNotFound
+        }
+        return nil, err
+    }
+    tags, err := s.eventRepo.EnsureTagsByNames(ctx, names)
+    if err != nil {
+        return nil, err
+    }
+    if err := s.eventRepo.RemoveTagsFromEvent(ctx, eventID, tags); err != nil {
+        return nil, err
+    }
+    e, err := s.eventRepo.QueryEventByID(ctx, eventID)
+    if err != nil {
+        return nil, err
+    }
+    return e, nil
+}
+
+func (s *EventService) QueryEventsByTag(ctx context.Context, tagName string) ([]*model.Event, error) {
+    tagName = strings.TrimSpace(tagName)
+    if tagName == "" {
+        return nil, errors.New("tag empty")
+    }
+    return s.eventRepo.QueryEventsByTagName(ctx, tagName)
 }
