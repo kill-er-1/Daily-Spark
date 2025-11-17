@@ -46,4 +46,7 @@ func RegisterEventRoutes(r *gin.Engine, h *handler.EventHandler) {
     v1.POST("/update/:id", h.UpdateEvent)
     v1.GET("/query", h.QueryEventsByUserID)
     v1.POST("/delete/:id", h.DeleteEvent)
+    v1.POST("/tags/add", h.AddEventTags)
+    v1.POST("/tags/remove", h.RemoveEventTags)
+    v1.GET("/query_by_tag", h.QueryEventsByTag)
 }

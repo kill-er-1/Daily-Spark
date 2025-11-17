@@ -9,10 +9,10 @@ import (
 const dsn = "host=postgres user=postgres password=postgres dbname=daily_spark port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 
 func InitDB() (*gorm.DB, error) {
-	DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		return nil, err
-	}
+    DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+    if err != nil {
+        return nil, err
+    }
 
 	//postgres 生成uuid插件
 	if err := DB.Exec(`create extension if not exists pgcrypto`).Error; err != nil {
@@ -30,8 +30,18 @@ func InitDB() (*gorm.DB, error) {
       return nil, err
     }
   }
-  if err := DB.AutoMigrate(&model.User{}, &model.Event{}); err != nil {
+  if err := DB.SetupJoinTable(&model.Event{}, "Tags", &model.EventTag{}); err != nil {
     return nil, err
+  }
+  if err := DB.AutoMigrate(&model.User{}, &model.Tag{}, &model.EventTag{}, &model.Event{}); err != nil {
+    return nil, err
+  }
+
+  defaults := []string{"开心", "难过", "兴奋", "平静"}
+  for _, name := range defaults {
+    if err := DB.Exec(`INSERT INTO tags(name) VALUES (?) ON CONFLICT(name) DO NOTHING`, name).Error; err != nil {
+      return nil, err
+    }
   }
 
 	return DB, nil

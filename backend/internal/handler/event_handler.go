@@ -44,6 +44,7 @@ type EventVO struct {
     EventDate string   `json:"event_date"`
     CreatedAt string   `json:"created_at"`
     UpdatedAt string   `json:"updated_at"`
+    Tags      []string `json:"tags,omitempty"`
 }
 
 // swagger response models
@@ -59,10 +60,21 @@ type EventListResponse struct {
 type SimpleMessageResponse struct {
     Message string `json:"message"`
 }
+type EventTagsRequest struct {
+    EventID string   `json:"event_id"`
+    Tags    []string `json:"tags"`
+}
 
 func eventToVO(e *model.Event) *EventVO {
     if e == nil {
         return nil
+    }
+    var tagNames []string
+    if e.Tags != nil {
+        tagNames = make([]string, 0, len(e.Tags))
+        for _, t := range e.Tags {
+            tagNames = append(tagNames, t.Name)
+        }
     }
     return &EventVO{
         ID:        e.ID,
@@ -74,6 +86,7 @@ func eventToVO(e *model.Event) *EventVO {
         EventDate: e.EventDate.Format("2006-01-02"),
         CreatedAt: e.CreatedAt.Format(time.RFC3339),
         UpdatedAt: e.UpdatedAt.Format(time.RFC3339),
+        Tags:      tagNames,
     }
 }
 
@@ -266,4 +279,83 @@ func (h *EventHandler) DeleteEvent(c *gin.Context) {
         return
     }
     c.JSON(http.StatusOK, gin.H{"message": "event deleted"})
+}
+// AddEventTags godoc
+// @Summary 为事件添加标签
+// @Description 为指定事件添加 1 个或多个心情标签（不存在的标签将自动创建）
+// @Tags events
+// @Accept json
+// @Produce json
+// @Param body body EventTagsRequest true "事件ID与标签名列表"
+// @Success 200 {object} EventUpdateResponse
+// @Failure 400 {string} string "bad request"
+// @Failure 500 {string} string "internal error"
+// @Router /events/tags/add [post]
+func (h *EventHandler) AddEventTags(c *gin.Context) {
+    var req EventTagsRequest
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+    e, err := h.service.AddEventTags(c.Request.Context(), strings.TrimSpace(req.EventID), req.Tags)
+    if err != nil {
+        if errors.Is(err, service.ErrEventNotFound) {
+            c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+        } else {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        }
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{"message": "event updated", "event": eventToVO(e)})
+}
+
+// RemoveEventTags godoc
+// @Summary 为事件移除标签
+// @Description 从指定事件移除标签
+// @Tags events
+// @Accept json
+// @Produce json
+// @Param body body EventTagsRequest true "事件ID与标签名列表"
+// @Success 200 {object} EventUpdateResponse
+// @Failure 400 {string} string "bad request"
+// @Failure 500 {string} string "internal error"
+// @Router /events/tags/remove [post]
+func (h *EventHandler) RemoveEventTags(c *gin.Context) {
+    var req EventTagsRequest
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+    e, err := h.service.RemoveEventTags(c.Request.Context(), strings.TrimSpace(req.EventID), req.Tags)
+    if err != nil {
+        if errors.Is(err, service.ErrEventNotFound) {
+            c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+        } else {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        }
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{"message": "event updated", "event": eventToVO(e)})
+}
+
+// QueryEventsByTag godoc
+// @Summary 根据标签筛选事件
+// @Description 返回具有指定标签的事件列表
+// @Tags events
+// @Accept json
+// @Produce json
+// @Param tag query string true "标签名"
+// @Success 200 {object} EventListResponse
+// @Failure 500 {string} string "internal error"
+// @Router /events/query_by_tag [get]
+func (h *EventHandler) QueryEventsByTag(c *gin.Context) {
+    tag := strings.TrimSpace(c.Query("tag"))
+    list, err := h.service.QueryEventsByTag(c.Request.Context(), tag)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    vos := make([]EventVO, 0, len(list))
+    for _, e := range list { vos = append(vos, *eventToVO(e)) }
+    c.JSON(http.StatusOK, gin.H{"events": vos})
 }

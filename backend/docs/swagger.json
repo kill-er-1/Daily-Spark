@@ -106,6 +106,14 @@
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "空 JSON 包装（可选）",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/handler.DeleteEventRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -161,6 +169,136 @@
                     },
                     "404": {
                         "description": "user not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "internal error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/events/query_by_tag": {
+            "get": {
+                "description": "返回具有指定标签的事件列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "根据标签筛选事件",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "标签名",
+                        "name": "tag",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.EventListResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "internal error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/events/tags/add": {
+            "post": {
+                "description": "为指定事件添加 1 个或多个心情标签（不存在的标签将自动创建）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "为事件添加标签",
+                "parameters": [
+                    {
+                        "description": "事件ID与标签名列表",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.EventTagsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.EventUpdateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "internal error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/events/tags/remove": {
+            "post": {
+                "description": "从指定事件移除标签",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "为事件移除标签",
+                "parameters": [
+                    {
+                        "description": "事件ID与标签名列表",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.EventTagsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.EventUpdateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
                         "schema": {
                             "type": "string"
                         }
@@ -491,6 +629,9 @@
         }
     },
     "definitions": {
+        "handler.DeleteEventRequest": {
+            "type": "object"
+        },
         "handler.DeleteUserRequest": {
             "type": "object",
             "properties": {
@@ -506,6 +647,20 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/handler.EventVO"
+                    }
+                }
+            }
+        },
+        "handler.EventTagsRequest": {
+            "type": "object",
+            "properties": {
+                "event_id": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 }
             }
@@ -544,6 +699,12 @@
                 },
                 "is_public": {
                     "type": "boolean"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "title": {
                     "type": "string"

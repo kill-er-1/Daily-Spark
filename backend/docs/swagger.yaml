@@ -1,5 +1,7 @@
 basePath: /api/v1
 definitions:
+  handler.DeleteEventRequest:
+    type: object
   handler.DeleteUserRequest:
     properties:
       account:
@@ -10,6 +12,15 @@ definitions:
       events:
         items:
           $ref: '#/definitions/handler.EventVO'
+        type: array
+    type: object
+  handler.EventTagsRequest:
+    properties:
+      event_id:
+        type: string
+      tags:
+        items:
+          type: string
         type: array
     type: object
   handler.EventUpdateResponse:
@@ -35,6 +46,10 @@ definitions:
         type: array
       is_public:
         type: boolean
+      tags:
+        items:
+          type: string
+        type: array
       title:
         type: string
       updated_at:
@@ -166,6 +181,11 @@ paths:
         name: id
         required: true
         type: string
+      - description: 空 JSON 包装（可选）
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/handler.DeleteEventRequest'
       produces:
       - application/json
       responses:
@@ -211,6 +231,91 @@ paths:
           schema:
             type: string
       summary: 查询用户下的事件
+      tags:
+      - events
+  /events/query_by_tag:
+    get:
+      consumes:
+      - application/json
+      description: 返回具有指定标签的事件列表
+      parameters:
+      - description: 标签名
+        in: query
+        name: tag
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.EventListResponse'
+        "500":
+          description: internal error
+          schema:
+            type: string
+      summary: 根据标签筛选事件
+      tags:
+      - events
+  /events/tags/add:
+    post:
+      consumes:
+      - application/json
+      description: 为指定事件添加 1 个或多个心情标签（不存在的标签将自动创建）
+      parameters:
+      - description: 事件ID与标签名列表
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.EventTagsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.EventUpdateResponse'
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      summary: 为事件添加标签
+      tags:
+      - events
+  /events/tags/remove:
+    post:
+      consumes:
+      - application/json
+      description: 从指定事件移除标签
+      parameters:
+      - description: 事件ID与标签名列表
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.EventTagsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.EventUpdateResponse'
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      summary: 为事件移除标签
       tags:
       - events
   /events/update/{id}:
