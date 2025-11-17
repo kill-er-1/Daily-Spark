@@ -5,6 +5,20 @@ definitions:
       account:
         type: string
     type: object
+  handler.EventListResponse:
+    properties:
+      events:
+        items:
+          $ref: '#/definitions/handler.EventVO'
+        type: array
+    type: object
+  handler.EventUpdateResponse:
+    properties:
+      event:
+        $ref: '#/definitions/handler.EventVO'
+      message:
+        type: string
+    type: object
   handler.EventVO:
     properties:
       content:
@@ -21,6 +35,8 @@ definitions:
         type: array
       is_public:
         type: boolean
+      title:
+        type: string
       updated_at:
         type: string
       user_id:
@@ -38,6 +54,27 @@ definitions:
       account:
         type: string
       password:
+        type: string
+    type: object
+  handler.SimpleMessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  handler.UpdateEventRequest:
+    properties:
+      content:
+        type: string
+      event_date:
+        description: YYYY-MM-DD
+        type: string
+      images:
+        items:
+          type: string
+        type: array
+      is_public:
+        type: boolean
+      title:
         type: string
     type: object
   handler.UpdateUserRequest:
@@ -116,6 +153,99 @@ paths:
           schema:
             type: string
       summary: 创建快乐事件
+      tags:
+      - events
+  /events/delete/{id}:
+    post:
+      consumes:
+      - application/json
+      description: 软删除事件记录
+      parameters:
+      - description: 事件ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.SimpleMessageResponse'
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      summary: 删除事件（软删除）
+      tags:
+      - events
+  /events/query:
+    get:
+      consumes:
+      - application/json
+      description: 根据用户ID返回事件列表（排除已软删除）
+      parameters:
+      - description: 用户ID
+        in: query
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.EventListResponse'
+        "404":
+          description: user not found
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      summary: 查询用户下的事件
+      tags:
+      - events
+  /events/update/{id}:
+    post:
+      consumes:
+      - application/json
+      description: 根据事件ID更新事件，支持部分字段更新
+      parameters:
+      - description: 事件ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新内容
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UpdateEventRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.EventUpdateResponse'
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "500":
+          description: internal error
+          schema:
+            type: string
+      summary: 编辑事件
       tags:
       - events
   /users/delete/{id}:

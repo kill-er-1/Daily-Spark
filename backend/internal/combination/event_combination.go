@@ -41,6 +41,9 @@ func BuildEventModule(db *gorm.DB) (*EventModule, error) {
 }
 
 func RegisterEventRoutes(r *gin.Engine, h *handler.EventHandler) {
-	v1 := r.Group("/api/v1/events")
-	v1.POST("/create", h.CreateEvent)
+    v1 := r.Group("/api/v1/events")
+    v1.POST("/create", h.CreateEvent)
+    v1.POST("/update/:id", h.UpdateEvent)
+    v1.GET("/query", h.QueryEventsByUserID)
+    v1.POST("/delete/:id", h.DeleteEvent)
 }

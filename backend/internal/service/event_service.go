@@ -1,13 +1,13 @@
 package service
 
 import (
-	"context"
-	"errors"
-	"strings"
-	"time"
+    "context"
+    "errors"
+    "strings"
+    "time"
 
-	"github.com/cin/daily-spark/internal/model"
-	"github.com/cin/daily-spark/internal/repository"
+    "github.com/cin/daily-spark/internal/model"
+    "github.com/cin/daily-spark/internal/repository"
 )
 
 type EventService struct {
@@ -59,4 +59,57 @@ func (s *EventService) CreateEvent(ctx context.Context, userID string, content s
 		return nil, err
 	}
 	return created, nil
+}
+
+func (s *EventService) UpdateEvent(ctx context.Context, id string, title *string, content *string, images []string, isPublic *bool, eventDate *time.Time) (*model.Event, error) {
+    id = strings.TrimSpace(id)
+    if id == "" {
+        return nil, errors.New("id empty")
+    }
+
+    e, err := s.eventRepo.QueryEventByID(ctx, id)
+    if err != nil {
+        return nil, err
+    }
+
+    if title != nil {
+        e.Title = strings.TrimSpace(*title)
+    }
+    if content != nil {
+        e.Content = strings.TrimSpace(*content)
+    }
+    if isPublic != nil {
+        e.IsPublic = *isPublic
+    }
+    if images != nil {
+        e.Images = images
+    }
+    if eventDate != nil {
+        e.EventDate = normalizeDate(*eventDate)
+    }
+
+    updated, err := s.eventRepo.UpdateEvent(ctx, e)
+    if err != nil {
+        return nil, err
+    }
+    return updated, nil
+}
+
+func (s *EventService) ListEventsByUserID(ctx context.Context, userID string) ([]*model.Event, error) {
+    userID = strings.TrimSpace(userID)
+    if userID == "" {
+        return nil, errors.New("user_id empty")
+    }
+    if _, err := s.userRepo.QueryUserByID(ctx, userID); err != nil {
+        return nil, ErrUserNotFound
+    }
+    return s.eventRepo.QueryEventsByUserID(ctx, userID)
+}
+
+func (s *EventService) DeleteEvent(ctx context.Context, id string) error {
+    id = strings.TrimSpace(id)
+    if id == "" {
+        return errors.New("id empty")
+    }
+    return s.eventRepo.DeleteEventSoft(ctx, id)
 }

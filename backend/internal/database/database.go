@@ -19,7 +19,17 @@ func InitDB() (*gorm.DB, error) {
 		return nil, err
 	}
 
-  //数据库迁移
+  if DB.Migrator().HasTable(&model.Event{}) {
+    if err := DB.Exec(`ALTER TABLE events ADD COLUMN IF NOT EXISTS title varchar(255)`).Error; err != nil {
+      return nil, err
+    }
+    if err := DB.Exec(`UPDATE events SET title = 'Untitled' WHERE title IS NULL`).Error; err != nil {
+      return nil, err
+    }
+    if err := DB.Exec(`ALTER TABLE events ALTER COLUMN title SET NOT NULL`).Error; err != nil {
+      return nil, err
+    }
+  }
   if err := DB.AutoMigrate(&model.User{}, &model.Event{}); err != nil {
     return nil, err
   }
