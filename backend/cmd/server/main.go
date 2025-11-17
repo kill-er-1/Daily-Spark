@@ -34,7 +34,11 @@ func main() {
     r := gin.Default()
     combination.RegisterUserRoutes(r, userModule.Handler)
 
-    // 注册 Swagger 路由
+    eventModule := combination.NewEventModule(db)
+    combination.RegisterEventRoutes(r, eventModule.Handler)
+
+    r.Static("/static", "./static")
+
     r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
     r.GET("/healthz", func(c *gin.Context) {
